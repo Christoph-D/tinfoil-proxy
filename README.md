@@ -2,14 +2,22 @@
 
 A tiny local reverse proxy that provides an OpenAI-compatible API endpoint,
 forwarding requests to a [Tinfoil](https://tinfoil.sh/) secure enclave with
-verified attestation.
+verified attestation. Tinfoil Proxy is a thin wrapper over the
+[Tinfoil Go SDK](https://github.com/tinfoilsh/tinfoil-go).
 
-This is more secure than calling Tinfoil's OpenAI compatible API directly
-because the proxy verifies the attestation locally, ensuring a trusted
-end-to-end encrypted channel to the secure enclave.
+As described in the
+[Tinfoil docs](https://docs.tinfoil.sh/sdk/overview#direct-api-access-not-recommended),
+using the Tinfoil SDK is more secure than calling Tinfoil's HTTPS endpoint
+directly because the SDK verifies the attestation locally, ensuring a trusted
+end-to-end encrypted channel to a secure enclave.
 
-Requests are authenticated with your own `TINFOIL_PROXY_API_KEY`, then proxied
-securely to the Tinfoil enclave using the `TINFOIL_API_KEY`.
+Tinfoil proxy authenticates requests with your own `TINFOIL_PROXY_API_KEY`. It
+then proxies them securely to a Tinfoil enclave using the `TINFOIL_API_KEY`.
+
+You can also provide these two keys as paths `TINFOIL_PROXY_API_KEY_PATH` and
+`TINFOIL_API_KEY_PATH` pointing to files containing the keys. This is more
+secure than direct env vars and the preferred way to supply credentials when
+running Tinfoil Proxy as a systemd unit.
 
 ## Endpoints
 

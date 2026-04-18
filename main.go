@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,18 +16,38 @@ import (
 	"github.com/tinfoilsh/tinfoil-go"
 )
 
+func resolveKey(directEnvName, pathEnvName string) (string, error) {
+	direct := os.Getenv(directEnvName)
+	path := os.Getenv(pathEnvName)
+
+	if direct != "" && path != "" {
+		return "", fmt.Errorf("both %s and %s are set; provide exactly one", directEnvName, pathEnvName)
+	}
+	if direct != "" {
+		return direct, nil
+	}
+	if path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return "", fmt.Errorf("failed to read %s from %s: %w", directEnvName, path, err)
+		}
+		return strings.TrimSpace(string(data)), nil
+	}
+	return "", fmt.Errorf("missing key: %s or %s must be set", directEnvName, pathEnvName)
+}
+
 func main() {
 	listenAddr := flag.String("listen", "127.0.0.1:17349", "listen address")
 	flag.Parse()
 
-	tinfoilAPIKey := os.Getenv("TINFOIL_API_KEY")
-	if tinfoilAPIKey == "" {
-		log.Fatal("TINFOIL_API_KEY environment variable is required")
+	tinfoilAPIKey, err := resolveKey("TINFOIL_API_KEY", "TINFOIL_API_KEY_PATH")
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	proxyAPIKey := os.Getenv("TINFOIL_PROXY_API_KEY")
-	if proxyAPIKey == "" {
-		log.Fatal("TINFOIL_PROXY_API_KEY environment variable is required")
+	proxyAPIKey, err := resolveKey("TINFOIL_PROXY_API_KEY", "TINFOIL_PROXY_API_KEY_PATH")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	log.Println("initializing tinfoil client and verifying enclave...")
