@@ -3,6 +3,11 @@ module go.yozora.eu/tinfoil-proxy
 go 1.25.9
 
 require (
+	github.com/openai/openai-go/v3 v3.16.0
+	github.com/tinfoilsh/tinfoil-go v0.12.9
+)
+
+require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
@@ -44,7 +49,6 @@ require (
 	github.com/in-toto/attestation v1.1.2 // indirect
 	github.com/in-toto/in-toto-golang v0.9.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/openai/openai-go/v3 v3.16.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.10.0 // indirect
@@ -61,7 +65,6 @@ require (
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
-	github.com/tinfoilsh/tinfoil-go v0.12.9 // indirect
 	github.com/transparency-dev/formats v0.0.0-20251027093029-9ba98ff6507f // indirect
 	github.com/transparency-dev/merkle v0.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.17.6 // indirect
