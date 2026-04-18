@@ -1,0 +1,36 @@
+{
+    "name": "tinfoil-proxy",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "DavidAnson.vscode-markdownlint",
+                "esbenp.prettier-vscode",
+                "golang.go",
+                "ms-vscode.makefile-tools"
+            ],
+            "settings": {
+                "[markdown]": {
+                    "editor.defaultFormatter": "esbenp.prettier-vscode",
+                },
+                "markdownlint.config": {
+                    "no-duplicate-heading": {
+                        "siblings_only": true
+                    }
+                },
+                "files.insertFinalNewline": true,
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": { "bash": { "path": "bash" } }
+            }
+        }
+    },
+    "workspaceFolder": "/workspaces/tinfoil-proxy",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/tinfoil-proxy,type=bind,consistency=cached",
+    "remoteUser": "tinfoil-proxy",
+    "mounts": [
+        "source=config-tinfoil-proxy,target=/home/tinfoil-proxy/persistent-config,type=volume",
+        "source=/etc/localtime,target=/usr/share/zoneinfo/hostlocaltime,type=bind,readonly"
+    ]
+}
