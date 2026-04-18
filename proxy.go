@@ -9,11 +9,13 @@ import (
 	"strings"
 )
 
-type chatCompletionsHandler struct {
+type proxyHandler struct {
 	proxy      *httputil.ReverseProxy
 	proxyToken string
 	apiKey     string
 	enclave    string
+	upstream   string
+	methods    []string
 }
 
 type errorResponse struct {
@@ -26,11 +28,13 @@ type errorDetail struct {
 	Code    string `json:"code"`
 }
 
-func newChatCompletionsHandler(secureTransport http.RoundTripper, enclave, apiKey, proxyToken string) *chatCompletionsHandler {
-	h := &chatCompletionsHandler{
+func newProxyHandler(secureTransport http.RoundTripper, enclave, apiKey, proxyToken, upstream string, methods []string) *proxyHandler {
+	h := &proxyHandler{
 		proxyToken: proxyToken,
 		apiKey:     apiKey,
 		enclave:    enclave,
+		upstream:   upstream,
+		methods:    methods,
 	}
 
 	h.proxy = &httputil.ReverseProxy{
@@ -42,9 +46,16 @@ func newChatCompletionsHandler(secureTransport http.RoundTripper, enclave, apiKe
 	return h
 }
 
-func (h *chatCompletionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Only POST is allowed")
+func (h *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	methodAllowed := false
+	for _, m := range h.methods {
+		if r.Method == m {
+			methodAllowed = true
+			break
+		}
+	}
+	if !methodAllowed {
+		writeError(w, http.StatusMethodNotAllowed, "method_not_allowed", fmt.Sprintf("Allowed methods: %s", strings.Join(h.methods, ", ")))
 		return
 	}
 
@@ -56,7 +67,7 @@ func (h *chatCompletionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	h.proxy.ServeHTTP(w, r)
 }
 
-func (h *chatCompletionsHandler) authenticate(r *http.Request) bool {
+func (h *proxyHandler) authenticate(r *http.Request) bool {
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Bearer ") {
 		return false
@@ -65,10 +76,10 @@ func (h *chatCompletionsHandler) authenticate(r *http.Request) bool {
 	return token == h.proxyToken
 }
 
-func (h *chatCompletionsHandler) director(req *http.Request) {
+func (h *proxyHandler) director(req *http.Request) {
 	req.URL.Scheme = "https"
 	req.URL.Host = h.enclave
-	req.URL.Path = "/v1/chat/completions"
+	req.URL.Path = h.upstream
 	req.URL.RawPath = ""
 	req.URL.RawQuery = ""
 	req.Host = h.enclave
@@ -77,7 +88,7 @@ func (h *chatCompletionsHandler) director(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 }
 
-func (h *chatCompletionsHandler) errorHandler(w http.ResponseWriter, r *http.Request, err error) {
+func (h *proxyHandler) errorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	log.Printf("proxy error: %v", err)
 	writeError(w, http.StatusBadGateway, "upstream_error", fmt.Sprintf("Failed to reach upstream: %v", err))
 }

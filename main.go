@@ -39,10 +39,12 @@ func main() {
 	secureTransport := client.HTTPClient().Transport
 	log.Printf("enclave verified: %s", enclave)
 
-	handler := newChatCompletionsHandler(secureTransport, enclave, tinfoilAPIKey, proxyAPIKey)
+	chatHandler := newProxyHandler(secureTransport, enclave, tinfoilAPIKey, proxyAPIKey, "/v1/chat/completions", []string{http.MethodPost})
+	modelsHandler := newProxyHandler(secureTransport, enclave, tinfoilAPIKey, proxyAPIKey, "/v1/models", []string{http.MethodGet})
 
 	mux := http.NewServeMux()
-	mux.Handle("/v1/chat/completions", handler)
+	mux.Handle("/v1/chat/completions", chatHandler)
+	mux.Handle("/v1/models", modelsHandler)
 
 	srv := &http.Server{
 		Addr:    *listenAddr,
