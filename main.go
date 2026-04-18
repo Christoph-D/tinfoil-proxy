@@ -24,9 +24,9 @@ func main() {
 		log.Fatal("TINFOIL_API_KEY environment variable is required")
 	}
 
-	proxyAPIKey := os.Getenv("PROXY_API_KEY")
+	proxyAPIKey := os.Getenv("TINFOIL_PROXY_API_KEY")
 	if proxyAPIKey == "" {
-		log.Fatal("PROXY_API_KEY environment variable is required")
+		log.Fatal("TINFOIL_PROXY_API_KEY environment variable is required")
 	}
 
 	log.Println("initializing tinfoil client and verifying enclave...")
