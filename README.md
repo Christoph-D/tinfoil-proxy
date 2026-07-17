@@ -1,23 +1,29 @@
 # Tinfoil Proxy
 
-A tiny local reverse proxy that provides an OpenAI-compatible API endpoint,
-forwarding requests to a [Tinfoil](https://tinfoil.sh/) secure enclave with
-verified attestation. Tinfoil Proxy is a thin wrapper over the
-[Tinfoil Go SDK](https://github.com/tinfoilsh/tinfoil-go).
+A tiny proxy that provides an OpenAI-compatible API endpoint, forwarding
+requests to a [Tinfoil](https://tinfoil.sh/) secure enclave.
 
-As described in the
+This gives you the best of both worlds:
+
+- A connection to a secure inference enclave with locally verified attestation
+- An OpenAI-compatible endpoint so your client doesn't need any changes
+
+Tinfoil Proxy is a thin wrapper over the
+[Tinfoil Go SDK](https://github.com/tinfoilsh/tinfoil-go). As described in the
 [Tinfoil docs](https://docs.tinfoil.sh/sdk/overview#direct-api-access-not-recommended),
-using the Tinfoil SDK is more secure than calling Tinfoil's HTTPS endpoint
-directly because the SDK verifies the attestation locally, ensuring a trusted
-end-to-end encrypted channel to a secure enclave.
+using the Tinfoil SDK is more secure than calling Tinfoil's OpenAI-compatible
+endpoint directly because the SDK verifies the attestation locally, ensuring a
+trusted end-to-end encrypted channel to a secure enclave.
 
-Tinfoil proxy authenticates requests with your own `TINFOIL_PROXY_API_KEY`. It
-then proxies them securely to a Tinfoil enclave using the `TINFOIL_API_KEY`.
+Tinfoil Proxy authenticates incoming requests with `TINFOIL_PROXY_API_KEY`, a
+key of your choosing. It then proxies them securely to a Tinfoil enclave using
+`TINFOIL_API_KEY`, which you need to
+[obtain from Tinfoil](https://dash.tinfoil.sh/?tab=api-keys).
 
-You can also provide these two keys as paths `TINFOIL_PROXY_API_KEY_PATH` and
-`TINFOIL_API_KEY_PATH` pointing to files containing the keys. This is more
-secure than direct env vars and the preferred way to supply credentials when
-running Tinfoil Proxy as a systemd unit.
+You can also set `TINFOIL_PROXY_API_KEY_PATH` and `TINFOIL_API_KEY_PATH` to file
+paths containing the respective keys. This is more secure than using env vars
+directly, and is the preferred way to supply credentials when running Tinfoil
+Proxy as a systemd unit.
 
 ## Endpoints
 
@@ -28,7 +34,7 @@ running Tinfoil Proxy as a systemd unit.
 
 ## Requirements
 
-- Go 1.25+
+- Go 1.26+
 
 ## Build
 
