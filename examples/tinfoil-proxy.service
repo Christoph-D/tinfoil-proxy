@@ -1,0 +1,72 @@
+# Tinfoil Proxy systemd unit file
+#
+# Installation:
+#   1. Build and install the binary:
+#        make build
+#        sudo install -m 0755 tinfoil-proxy /usr/local/bin/tinfoil-proxy
+#   2. Create a dedicated system user/group:
+#        sudo useradd --system --no-create-home --shell /usr/sbin/nologin tinfoil-proxy
+#   3. Create a credentials directory readable only by root:
+#        sudo install -d -m 0700 -o root -g root /etc/tinfoil-proxy
+#   4. Drop your keys into it (no trailing newline, mode 0600):
+#        printf '%s' '<your-tinfoil-api-key>' | sudo tee /etc/tinfoil-proxy/tinfoil_api_key >/dev/null
+#        printf '%s' '<your-proxy-api-key>'   | sudo tee /etc/tinfoil-proxy/proxy_api_key >/dev/null
+#        sudo chmod 0600 /etc/tinfoil-proxy/*_key
+#   5. Install this unit and enable it:
+#        sudo install -m 0644 examples/tinfoil-proxy.service /etc/systemd/system/
+#        sudo systemctl daemon-reload
+#        sudo systemctl enable --now tinfoil-proxy
+#
+# systemd copies each LoadCredential file into an isolated, per-service tmpfs
+# mounted under $CREDENTIALS_DIRECTORY ("%d" in unit syntax) owned by the
+# service user. Pointing the *_PATH env vars there keeps secrets off the
+# process environment and /proc/<pid>/cmdline.
+
+[Unit]
+Description=Tinfoil Proxy (OpenAI-compatible bridge to a Tinfoil secure enclave)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tinfoil-proxy
+Group=tinfoil-proxy
+
+ExecStart=/usr/local/bin/tinfoil-proxy -listen 127.0.0.1:17349
+
+Restart=on-failure
+RestartSec=5
+
+Environment=TINFOIL_API_KEY_PATH=%d/tinfoil_api_key
+Environment=TINFOIL_PROXY_API_KEY_PATH=%d/proxy_api_key
+LoadCredential=tinfoil_api_key:/etc/tinfoil-proxy/tinfoil_api_key
+LoadCredential=proxy_api_key:/etc/tinfoil-proxy/proxy_api_key
+
+# Hardening. The service needs inbound + outbound network but performs no
+# filesystem writes (logs go to journald via stderr). Drop everything else.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectHostname=yes
+ProtectClock=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+
+[Install]
+WantedBy=multi-user.target
