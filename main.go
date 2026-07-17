@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -51,7 +53,14 @@ func main() {
 	}
 
 	log.Println("initializing tinfoil client and verifying enclave...")
-	client, err := tinfoil.NewClient(option.WithAPIKey(tinfoilAPIKey))
+	cacheSecret := make([]byte, 32)
+	if _, err := rand.Read(cacheSecret); err != nil {
+		log.Fatalf("failed to generate user cache secret: %v", err)
+	}
+	client, err := tinfoil.NewClientWithOptions(
+		tinfoil.WithOpenAIOptions(option.WithAPIKey(tinfoilAPIKey)),
+		tinfoil.WithUserCacheSecret(hex.EncodeToString(cacheSecret)),
+	)
 	if err != nil {
 		log.Fatalf("failed to create tinfoil client: %v", err)
 	}
